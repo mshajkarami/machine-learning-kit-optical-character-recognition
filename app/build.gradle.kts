@@ -40,4 +40,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    // add any other libraries needed for our app
+    implementation ("com.google.android.gms:play-services-mlkit-text-recognition:16.2.0")
+    implementation ("com.github.bumptech.glide:glide:4.12.0")
 }
