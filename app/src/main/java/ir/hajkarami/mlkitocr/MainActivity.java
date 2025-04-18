@@ -1,12 +1,10 @@
 package ir.hajkarami.mlkitocr;
 
-import android.app.ComponentCaller;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.Button;
@@ -39,13 +37,11 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_IMAGE = 123;
     ImageView imageView;
     TextView textTv;
-    Button speechBtn, imageBtn;
+    Button speech, image;
 
     InputImage inputImage;
     TextRecognizer recognizer;
     TextToSpeech textToSpeech;
-    public Bitmap textImage;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +56,11 @@ public class MainActivity extends AppCompatActivity {
 
         recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
         imageView = findViewById(R.id.imageView);
-        textTv = findViewById(R.id.textTv);
-        speechBtn = findViewById(R.id.read_text);
-        imageBtn = findViewById(R.id.choice_image);
+        textTv = findViewById(R.id.textView);
+        speech = findViewById(R.id.read_text);
+        image = findViewById(R.id.choice_image);
 
-        imageBtn.setOnClickListener(new View.OnClickListener() {
+        image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 OpenGallery();
@@ -77,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     textToSpeech.setLanguage(Locale.US);
             }
         });
-        speechBtn.setOnClickListener(new View.OnClickListener() {
+        speech.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 textToSpeech.speak(textTv.getText().toString(), TextToSpeech.QUEUE_FLUSH, null);
@@ -96,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
                 String path = null;
                 try {
                     inputImage = InputImage.fromFilePath(this, data.getData());
-//                    Bitmap resultUri = inputImage.getBitmapInternal();
                     Glide.with(MainActivity.this).load(data.getData()).into(imageView);
                     // process image
                     Task<Text> result =
@@ -119,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     private void OpenGallery() {
         Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
         getIntent.setType("image/*");
@@ -154,13 +150,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        if (!textToSpeech.isSpeaking()){
-            super.onPause();
+        if (textToSpeech.isSpeaking()) {
+            textToSpeech.stop();
         }
+        super.onPause();
     }
+
 
     @Override
     protected void onStop() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
         super.onStop();
     }
+
 }
