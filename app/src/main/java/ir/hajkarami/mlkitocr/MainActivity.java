@@ -68,8 +68,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 OpenGallery();
-                textImage = imageView.getDrawingCache();
-                inputImage = InputImage.fromBitmap(textImage, 0);
             }
         });
         textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -88,27 +86,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void OpenGallery() {
-        Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        getIntent.setType("image/");
-        Intent pickIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        pickIntent.setType("image/");
-        Intent choserIntent = Intent.createChooser(getIntent, "Select Image");
-        choserIntent.putExtra(Intent.EXTRA_ALTERNATE_INTENTS, new Intent[]{pickIntent});
-        startActivityForResult(choserIntent, PICK_IMAGE);
-    }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data, @NonNull ComponentCaller caller) {
-        super.onActivityResult(requestCode, resultCode, data, caller);
-        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE) {
             if (data != null) {
                 byte[] byteArray = new byte[0];
                 String path = null;
                 try {
                     inputImage = InputImage.fromFilePath(this, data.getData());
-                    Bitmap resultUri = inputImage.getBitmapInternal();
-                    Glide.with(this).load(resultUri).into(imageView);
+//                    Bitmap resultUri = inputImage.getBitmapInternal();
+                    Glide.with(MainActivity.this).load(data.getData()).into(imageView);
                     // process image
                     Task<Text> result =
                             recognizer.process(inputImage)
@@ -125,10 +114,19 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     });
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         }
+    }
+    private void OpenGallery() {
+        Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        getIntent.setType("image/*");
+        Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        pickIntent.setType("image/*");
+        Intent choserIntent = Intent.createChooser(getIntent, "Select Image");
+        choserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{pickIntent});
+        startActivityForResult(choserIntent, PICK_IMAGE);
     }
 
     private void ProcessText(Text text) {
@@ -159,5 +157,10 @@ public class MainActivity extends AppCompatActivity {
         if (!textToSpeech.isSpeaking()){
             super.onPause();
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 }
